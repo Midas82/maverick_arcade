@@ -25,10 +25,14 @@ class VerticalSpinWheel extends StatefulWidget {
 class _VerticalSpinWheelState extends State<VerticalSpinWheel> {
   late FixedExtentScrollController _controller;
   
-  // Audio Pool
+  // Audio Pool for individual clicks
   final List<AudioPlayer> _audioPool = [];
   final int _poolSize = 5;
   int _currentPoolIndex = 0;
+  
+  // Spinning and applause sounds
+  late AudioPlayer _spinPlayer;
+  late AudioPlayer _applausePlayer;
   
   static const double _itemHeight = 50.0; 
   int _lastItemIndex = 0;
@@ -48,12 +52,24 @@ class _VerticalSpinWheelState extends State<VerticalSpinWheel> {
   }
 
   Future<void> _initAudioPool() async {
+    // Initialize click sound pool
     for (int i = 0; i < _poolSize; i++) {
       final player = AudioPlayer();
       await player.setSource(AssetSource('audio/click.wav'));
       await player.setPlayerMode(PlayerMode.lowLatency);
       _audioPool.add(player);
     }
+    
+    // Initialize spinning sound (looped)
+    _spinPlayer = AudioPlayer();
+    await _spinPlayer.setSource(AssetSource('audio/wheel_spin.wav'));
+    await _spinPlayer.setReleaseMode(ReleaseMode.loop);
+    await _spinPlayer.setPlayerMode(PlayerMode.lowLatency);
+    
+    // Initialize applause sound
+    _applausePlayer = AudioPlayer();
+    await _applausePlayer.setSource(AssetSource('audio/applause.wav'));
+    await _applausePlayer.setPlayerMode(PlayerMode.lowLatency);
   }
 
   @override
@@ -63,6 +79,8 @@ class _VerticalSpinWheelState extends State<VerticalSpinWheel> {
     for (var player in _audioPool) {
       player.dispose();
     }
+    _spinPlayer.dispose();
+    _applausePlayer.dispose();
     super.dispose();
   }
 
@@ -96,11 +114,18 @@ class _VerticalSpinWheelState extends State<VerticalSpinWheel> {
         ? targetScrollIndex 
         : targetScrollIndex + listLength;
 
+    // Start the spinning sound
+    _spinPlayer.resume();
+
     _controller.animateToItem(
       finalIndex,
       duration: const Duration(seconds: 6),
       curve: Curves.decelerate,
     ).then((_) {
+      // Stop spinning sound and play applause
+      _spinPlayer.stop();
+      _applausePlayer.resume();
+      
       HapticFeedback.mediumImpact();
       widget.onSpinComplete(widget.items[targetIndex]);
     });
