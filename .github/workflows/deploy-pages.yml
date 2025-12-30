@@ -1,3 +1,4 @@
+
 name: Deploy Flutter Web to GitHub Pages
 
 on:
@@ -33,7 +34,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "stable"
           channel: "stable"
           cache: true
 
@@ -53,21 +53,4 @@ jobs:
 
       - name: Add SPA 404 fallback and nojekyll
         run: |
-          cp build/web/index.html build/web/404.html
-          touch build/web/.nojekyll
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: client/app/build/web
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          cp build
