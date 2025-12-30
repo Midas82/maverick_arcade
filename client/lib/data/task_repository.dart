@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -32,6 +33,11 @@ class TaskRepository {
   }
 
   Future<void> _loadUserTasks() async {
+    if (kIsWeb) {
+      // On web, user tasks aren't persisted (could use localStorage/SharedPreferences)
+      _userTasks = [];
+      return;
+    }
     try {
       final file = await _getUserFile();
       if (await file.exists()) {
@@ -57,6 +63,10 @@ class TaskRepository {
   }
 
   Future<void> _saveUserTasks() async {
+    if (kIsWeb) {
+      // On web, user tasks aren't persisted to file system
+      return;
+    }
     try {
       final file = await _getUserFile();
       final jsonList = _userTasks.map((t) => t.toJson()).toList();
@@ -67,6 +77,9 @@ class TaskRepository {
   }
 
   Future<File> _getUserFile() async {
+    if (kIsWeb) {
+      throw UnsupportedError('File operations not supported on web');
+    }
     final directory = await getApplicationDocumentsDirectory();
     return File('${directory.path}/user_tasks.json');
   }
