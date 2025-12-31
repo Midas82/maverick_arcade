@@ -115,7 +115,8 @@ class _VerticalSpinWheelState extends State<VerticalSpinWheel> {
         : targetScrollIndex + listLength;
 
     // Start the spinning sound
-    _spinPlayer.resume();
+    _spinPlayer.seek(Duration.zero);
+    _spinPlayer.play(AssetSource('audio/wheel_spin.wav'));
 
     _controller.animateToItem(
       finalIndex,
@@ -124,7 +125,8 @@ class _VerticalSpinWheelState extends State<VerticalSpinWheel> {
     ).then((_) {
       // Stop spinning sound and play applause
       _spinPlayer.stop();
-      _applausePlayer.resume();
+      _applausePlayer.seek(Duration.zero);
+      _applausePlayer.play(AssetSource('audio/applause.wav'));
       
       HapticFeedback.mediumImpact();
       widget.onSpinComplete(widget.items[targetIndex]);
